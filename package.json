@@ -1,6 +1,6 @@
 {
-  "name": "ipynb-to-png-converter",
-  "displayName": "Jupyter to PNG Converter",
+  "name": "notebook-to-png-converter",
+  "displayName": "Jupyter Notebook to PNG Exporter",
   "description": "Convert Jupyter Notebook (.ipynb) files to PNG images",
   "version": "0.0.1",
   "publisher": "leekh",
