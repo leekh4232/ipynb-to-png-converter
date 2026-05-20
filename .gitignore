@@ -5,6 +5,7 @@ node_modules
 *.vsix
 .env
 .vscode/settings.local.json
+.claude/
 
 # Logs
 logs

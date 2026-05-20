@@ -2,7 +2,7 @@
   "name": "notebook-to-png-converter",
   "displayName": "Jupyter Notebook to PNG Exporter",
   "description": "Convert Jupyter Notebook (.ipynb) files to PNG images",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "publisher": "leekh",
   "repository": {
     "type": "git",
@@ -18,10 +18,7 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:ipynb-to-png-converter.convertToPng",
-    "onView:ipynb-to-png-converter.explorer"
-  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -36,7 +33,20 @@
         {
           "command": "ipynb-to-png-converter.convertToPng",
           "when": "resourceExtname == .ipynb",
-          "group": "2_workspace"
+          "group": "navigation@99"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "ipynb-to-png-converter.convertToPng",
+          "when": "resourceExtname == .ipynb",
+          "group": "navigation@99"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "ipynb-to-png-converter.convertToPng",
+          "when": "resourceExtname == .ipynb || activeEditor == 'workbench.editor.notebook'"
         }
       ]
     },
@@ -49,12 +59,45 @@
           "minimum": 1,
           "maximum": 5,
           "description": "Device scale factor for PNG image resolution (1-5). Higher values produce higher resolution images."
+        },
+        "ipynb-to-png-converter.imageWidth": {
+          "type": "number",
+          "default": 1024,
+          "minimum": 480,
+          "maximum": 2400,
+          "description": "Width of the generated PNG image in CSS pixels (final PNG width = imageWidth × deviceScaleFactor)."
+        },
+        "ipynb-to-png-converter.codeTheme": {
+          "type": "string",
+          "default": "dracula",
+          "enum": [
+            "dracula",
+            "github",
+            "github-dark",
+            "atom-one-light",
+            "atom-one-dark",
+            "monokai",
+            "nord",
+            "vs2015"
+          ],
+          "enumDescriptions": [
+            "Dracula",
+            "GitHub Light",
+            "GitHub Dark",
+            "Atom One Light",
+            "Atom One Dark",
+            "Monokai",
+            "Nord",
+            "Visual Studio Dark"
+          ],
+          "description": "Syntax highlighting theme for source code cells."
         }
       }
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run vendor && npm run compile",
+    "vendor": "mkdir -p media/themes && cp node_modules/html2canvas/dist/html2canvas.min.js media/html2canvas.min.js && cp node_modules/highlight.js/styles/{github,github-dark,atom-one-light,atom-one-dark,monokai,nord,vs2015}.css media/themes/ && cp node_modules/highlight.js/styles/base16/dracula.css media/themes/dracula.css && cp node_modules/github-markdown-css/github-markdown-light.css media/github-markdown.css",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
@@ -70,11 +113,14 @@
     "@typescript-eslint/parser": "^6.2.1",
     "@vscode/test-electron": "^2.3.3",
     "eslint": "^8.45.0",
+    "github-markdown-css": "^5.9.0",
     "glob": "^10.3.3",
+    "html2canvas": "^1.4.1",
     "mocha": "^10.2.0",
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "child-process-promise": "^2.2.0"
+    "highlight.js": "^11.9.0",
+    "marked": "^12.0.0"
   }
 }
