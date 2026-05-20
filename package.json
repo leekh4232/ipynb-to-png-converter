@@ -1,0 +1,80 @@
+{
+  "name": "ipynb-to-png-converter",
+  "displayName": "Jupyter to PNG Converter",
+  "description": "Convert Jupyter Notebook (.ipynb) files to PNG images",
+  "version": "0.0.1",
+  "publisher": "leekh",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leekh4232/ipynb-to-png-converter"
+  },
+  "author": {
+    "name": "이광호",
+    "email": "leekh4232@gmail.com"
+  },
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:ipynb-to-png-converter.convertToPng",
+    "onView:ipynb-to-png-converter.explorer"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ipynb-to-png-converter.convertToPng",
+        "title": "Convert Jupyter Notebook to PNG",
+        "category": "Jupyter"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "ipynb-to-png-converter.convertToPng",
+          "when": "resourceExtname == .ipynb",
+          "group": "2_workspace"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Jupyter to PNG Converter",
+      "properties": {
+        "ipynb-to-png-converter.deviceScaleFactor": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Device scale factor for PNG image resolution (1-5). Higher values produce higher resolution images."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^20.4.2",
+    "@types/vscode": "^1.84.0",
+    "@typescript-eslint/eslint-plugin": "^6.2.1",
+    "@typescript-eslint/parser": "^6.2.1",
+    "@vscode/test-electron": "^2.3.3",
+    "eslint": "^8.45.0",
+    "glob": "^10.3.3",
+    "mocha": "^10.2.0",
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "child-process-promise": "^2.2.0"
+  }
+}

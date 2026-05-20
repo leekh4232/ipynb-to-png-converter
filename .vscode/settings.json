@@ -1,0 +1,7 @@
+{
+  "settings": {
+    "eslint.validate": [
+      "typescript"
+    ]
+  }
+}
