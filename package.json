@@ -137,7 +137,7 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run vendor && npm run typecheck && npm run build",
-    "vendor": "mkdir -p media/themes && cp node_modules/html2canvas/dist/html2canvas.min.js media/html2canvas.min.js && cp node_modules/highlight.js/styles/{github,github-dark,atom-one-light,atom-one-dark,monokai,nord,vs2015}.css media/themes/ && cp node_modules/highlight.js/styles/base16/dracula.css media/themes/dracula.css && cp node_modules/github-markdown-css/github-markdown-light.css media/github-markdown.css",
+    "vendor": "node scripts/vendor.mjs",
     "build": "esbuild src/extension.ts --bundle --outfile=out/extension.js --platform=node --target=node18 --external:vscode --format=cjs --minify",
     "watch": "esbuild src/extension.ts --bundle --outfile=out/extension.js --platform=node --target=node18 --external:vscode --format=cjs --sourcemap --watch",
     "typecheck": "tsc -p ./ --noEmit",
