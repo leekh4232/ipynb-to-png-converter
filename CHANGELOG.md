@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-05-21
+
+### Added
+- **`pdfPageMargin` setting** (default `32` CSS px) — inner margin applied on all four sides of every PDF page. Content is now rendered into the `pageWidth - 2×margin` × `pageHeight - 2×margin` content area and centered on each page.
+
+### Changed
+- **`imageWidth` default lowered from `960` → `800`** so PNG and PDF share the same rendering width by default.
+
+## [0.4.0] - 2026-05-21
+
+### Added
+- **Multi-page PDF output**: PDF is now paginated. The captured notebook is sliced into fixed-size pages so it can be flipped through page-by-page in any standard PDF viewer.
+- **Separate width settings for PNG and PDF**:
+  - `pdfPageWidth` (default `800`) — width of each PDF page in CSS pixels.
+  - `pdfPageHeight` (default `1280`) — height of each PDF page in CSS pixels.
+  - Defaults are optimized for **Galaxy Tab S9 portrait** (800 × 1280 CSS px → 1600 × 2560 px at the device's 2× DPR).
+- Output channel now reports page count for PDF runs.
+
+### Changed
+- `imageWidth` is now PNG-only; PDF uses the dedicated `pdfPageWidth` / `pdfPageHeight` pair.
+- Webview script now produces an array of page data URLs; PNG runs return a single-page array (no behavior change for PNG output).
+
+## [0.3.0] - 2026-05-21
+
+### Added
+- **PDF export**: New `Convert Jupyter Notebook to PDF` command, available from the Explorer context menu, editor tab context menu, and Command Palette. Generated PDF preserves the same rendering as the PNG output.
+- GitHub Actions workflow (`.github/workflows/build-and-publish.yml`) that automatically lints, type-checks, bundles, packages, and publishes the extension to the VSCode Marketplace whenever a commit message pushed to `main` contains the word `build`. Also uploads the `.vsix` as a workflow artifact and creates a tagged GitHub Release.
+- `npm run package` / `npm run publish` shortcuts for local `vsce` runs.
+
+### Changed
+- **Smartphone-optimized default width**: `imageWidth` default lowered from `1024` to `360` (Galaxy S25 logical CSS width). With the default `deviceScaleFactor` of `3`, the captured PNG is 1080 px wide — exactly the physical pixel width of a Galaxy S25 screen.
+- **Bundled distribution with esbuild**: extension code is now bundled into a single minified `out/extension.js`. `node_modules` is excluded from the `.vsix` package, dramatically reducing the install footprint (was ~79 MB of node_modules shipped in v0.2.0).
+- `vscode:prepublish` now runs `vendor → typecheck → build` instead of plain `tsc`.
+
+### Removed
+- `tsc`-emitted per-file JS in `out/` (replaced by a single esbuild bundle).
+
 ## [0.1.0] - 2026-05-21
 
 ### Changed

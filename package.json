@@ -1,8 +1,8 @@
 {
   "name": "notebook-to-png-converter",
   "displayName": "Jupyter Notebook to PNG Exporter",
-  "description": "Convert Jupyter Notebook (.ipynb) files to PNG images",
-  "version": "0.1.0",
+  "description": "Convert Jupyter Notebook (.ipynb) files to PNG images or PDF documents, optimized for smartphone viewing.",
+  "version": "0.4.1",
   "publisher": "leekh",
   "repository": {
     "type": "git",
@@ -26,6 +26,11 @@
         "command": "ipynb-to-png-converter.convertToPng",
         "title": "Convert Jupyter Notebook to PNG",
         "category": "Jupyter"
+      },
+      {
+        "command": "ipynb-to-png-converter.convertToPdf",
+        "title": "Convert Jupyter Notebook to PDF",
+        "category": "Jupyter"
       }
     ],
     "menus": {
@@ -34,6 +39,11 @@
           "command": "ipynb-to-png-converter.convertToPng",
           "when": "resourceExtname == .ipynb",
           "group": "navigation@99"
+        },
+        {
+          "command": "ipynb-to-png-converter.convertToPdf",
+          "when": "resourceExtname == .ipynb",
+          "group": "navigation@98"
         }
       ],
       "editor/title/context": [
@@ -41,11 +51,20 @@
           "command": "ipynb-to-png-converter.convertToPng",
           "when": "resourceExtname == .ipynb",
           "group": "navigation@99"
+        },
+        {
+          "command": "ipynb-to-png-converter.convertToPdf",
+          "when": "resourceExtname == .ipynb",
+          "group": "navigation@98"
         }
       ],
       "commandPalette": [
         {
           "command": "ipynb-to-png-converter.convertToPng",
+          "when": "resourceExtname == .ipynb || activeEditor == 'workbench.editor.notebook'"
+        },
+        {
+          "command": "ipynb-to-png-converter.convertToPdf",
           "when": "resourceExtname == .ipynb || activeEditor == 'workbench.editor.notebook'"
         }
       ]
@@ -62,10 +81,31 @@
         },
         "ipynb-to-png-converter.imageWidth": {
           "type": "number",
-          "default": 1024,
-          "minimum": 480,
+          "default": 800,
+          "minimum": 360,
           "maximum": 2400,
-          "description": "Width of the generated PNG image in CSS pixels (final PNG width = imageWidth × deviceScaleFactor)."
+          "description": "Width of the generated PNG image in CSS pixels (final PNG width = imageWidth × deviceScaleFactor). Default matches pdfPageWidth so PNG and PDF share the same rendering width."
+        },
+        "ipynb-to-png-converter.pdfPageWidth": {
+          "type": "number",
+          "default": 800,
+          "minimum": 360,
+          "maximum": 2400,
+          "description": "Width of each PDF page in CSS pixels. Default optimized for Galaxy Tab S9 portrait (800 × 1280 CSS px)."
+        },
+        "ipynb-to-png-converter.pdfPageHeight": {
+          "type": "number",
+          "default": 1280,
+          "minimum": 480,
+          "maximum": 4000,
+          "description": "Height of each PDF page in CSS pixels. Content longer than this is split across multiple pages. Default optimized for Galaxy Tab S9 portrait."
+        },
+        "ipynb-to-png-converter.pdfPageMargin": {
+          "type": "number",
+          "default": 32,
+          "minimum": 0,
+          "maximum": 200,
+          "description": "Inner margin around content on every PDF page, in CSS pixels. Applied on all four sides of every page."
         },
         "ipynb-to-png-converter.codeTheme": {
           "type": "string",
@@ -96,13 +136,16 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run vendor && npm run compile",
+    "vscode:prepublish": "npm run vendor && npm run typecheck && npm run build",
     "vendor": "mkdir -p media/themes && cp node_modules/html2canvas/dist/html2canvas.min.js media/html2canvas.min.js && cp node_modules/highlight.js/styles/{github,github-dark,atom-one-light,atom-one-dark,monokai,nord,vs2015}.css media/themes/ && cp node_modules/highlight.js/styles/base16/dracula.css media/themes/dracula.css && cp node_modules/github-markdown-css/github-markdown-light.css media/github-markdown.css",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
+    "build": "esbuild src/extension.ts --bundle --outfile=out/extension.js --platform=node --target=node18 --external:vscode --format=cjs --minify",
+    "watch": "esbuild src/extension.ts --bundle --outfile=out/extension.js --platform=node --target=node18 --external:vscode --format=cjs --sourcemap --watch",
+    "typecheck": "tsc -p ./ --noEmit",
+    "pretest": "npm run typecheck && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package --no-dependencies",
+    "publish": "vsce publish --no-dependencies"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
@@ -112,6 +155,8 @@
     "@typescript-eslint/eslint-plugin": "^6.2.1",
     "@typescript-eslint/parser": "^6.2.1",
     "@vscode/test-electron": "^2.3.3",
+    "@vscode/vsce": "^2.24.0",
+    "esbuild": "^0.20.0",
     "eslint": "^8.45.0",
     "github-markdown-css": "^5.9.0",
     "glob": "^10.3.3",
@@ -121,6 +166,7 @@
   },
   "dependencies": {
     "highlight.js": "^11.9.0",
+    "jspdf": "^2.5.1",
     "marked": "^12.0.0"
   }
 }
