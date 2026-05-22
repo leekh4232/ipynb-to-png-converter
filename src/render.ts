@@ -30,6 +30,13 @@ export function renderNotebook(nb: Notebook): string {
   return `<div class="jp-Notebook">\n${cellsHtml}\n</div>`;
 }
 
+// Renders a standalone Markdown document, reusing the same notebook chrome so it
+// flows through the identical capture/theme pipeline as a .ipynb file.
+export function renderMarkdown(source: string): string {
+  const html = marked.parse(source) as string;
+  return `<div class="jp-Notebook">\n<div class="jp-Cell jp-MarkdownCell"><div class="jp-Cell-inputWrapper"><div class="markdown-body">${html}</div></div></div>\n</div>`;
+}
+
 function renderCell(cell: Cell, language: string): string {
   switch (cell.cell_type) {
     case 'markdown':

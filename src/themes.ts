@@ -65,6 +65,15 @@ export const THEMES: Record<string, ThemeInfo> = {
     border: '#333333',
     lineNumber: '#5a5a5a',
   },
+  // Light, GitHub-print look from nb_convert.py's vertical (A4) mode. Pairs with
+  // media/themes/leekh.css (syntax) and leekh.chrome.css (document styling).
+  'leekh': {
+    label: 'Leekh',
+    background: '#f6f8fa',
+    foreground: '#24292e',
+    border: '#d0d7de',
+    lineNumber: '#8b949e',
+  },
 };
 
 export function resolveTheme(name: string | undefined): { key: string; info: ThemeInfo } {

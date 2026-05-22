@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-05-22
+
+### Added
+- **Markdown (`.md`) support**: both commands now convert standalone `.md` files to PNG/PDF in addition to `.ipynb`. Context-menu, command-palette, and active-editor entry points all recognize `.md`.
+- **`leekh` code theme**: a light, A4-print-style theme ported from `nb_convert.py`'s vertical mode — emoji-prefixed colored headings (📚📘📝✏️📄), light code/output blocks with left-accented outputs, and GitHub-style tables with a bold first column. Selectable via `ipynb-to-png-converter.codeTheme`.
+
+### Changed
+- Commands renamed to **"Convert Notebook/Markdown to PNG/PDF"** to reflect Markdown support.
+
 ## [0.4.1] - 2026-05-21
 
 ### Added

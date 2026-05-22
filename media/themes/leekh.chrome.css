@@ -1,0 +1,108 @@
+/*
+ * Leekh theme — document chrome.
+ *
+ * Ported from nb_convert.py's vertical (A4) mode CSS: emoji-prefixed colored
+ * headings, light code/output blocks, and GitHub-style tables with a bold first
+ * column. Appended after the base styles so these rules win; selectors are
+ * scoped to the extension's DOM (.markdown-body, .jp-OutputArea, .jp-RenderedHTML)
+ * rather than the bare element selectors the standalone PDF script could use.
+ */
+
+:root {
+  --leekh-code-bg: #f6f8fa;
+  --leekh-output-bg: #f8fafc;
+  --leekh-output-border: #c9d7e3;
+}
+
+/* ---- Headings (markdown cells / standalone markdown) ---- */
+.markdown-body h1 {
+  font-size: 1.5em !important;
+}
+.markdown-body h2 {
+  font-size: 1.3em !important;
+  margin-top: 1.3em !important;
+  color: rgb(165, 0, 165) !important;
+}
+.markdown-body h3 {
+  font-size: 1.2em !important;
+  margin-top: 1.2em !important;
+  border-bottom: 1px dotted #999 !important;
+  color: #ec670d !important;
+}
+.markdown-body h4 {
+  font-size: 1.15em !important;
+  margin-top: 1.15em !important;
+  border-bottom: 1px dotted #999 !important;
+  color: rgb(0, 90, 0) !important;
+}
+.markdown-body h5 {
+  font-size: 1.1em !important;
+  margin-top: 1.1em !important;
+  border-bottom: 1px dotted #999 !important;
+  color: rgb(27, 39, 144) !important;
+}
+.markdown-body h1::before {
+  content: '📚';
+  vertical-align: middle;
+  margin-right: 10px;
+}
+.markdown-body h2::before {
+  content: '📘';
+  vertical-align: middle;
+  margin-right: 10px;
+}
+.markdown-body h3::before {
+  content: '📝';
+  vertical-align: middle;
+  margin-right: 10px;
+}
+.markdown-body h4::before {
+  content: '✏️';
+  vertical-align: middle;
+  margin-right: 10px;
+}
+.markdown-body h5::before {
+  content: '📄';
+  vertical-align: middle;
+  margin-right: 10px;
+}
+
+/* ---- Code input cells ---- */
+.jp-InputArea-editor {
+  background: var(--leekh-code-bg) !important;
+  border: 1px solid #d0d7de !important;
+  border-radius: 6px !important;
+}
+
+/* ---- Output cells: light, left-accented (stderr/error keep their own color) ---- */
+.jp-OutputArea-stdout,
+.jp-OutputArea:not(.jp-OutputArea-stderr):not(.jp-OutputArea-error) {
+  background: var(--leekh-output-bg) !important;
+  border-left: 4px solid var(--leekh-output-border) !important;
+  border-radius: 0 6px 6px 0 !important;
+}
+
+/* ---- Tables (markdown + rendered HTML such as pandas DataFrames) ---- */
+.markdown-body table,
+.jp-RenderedHTML table {
+  border-collapse: collapse !important;
+  margin: 1em 0 !important;
+}
+.markdown-body th,
+.markdown-body td,
+.jp-RenderedHTML th,
+.jp-RenderedHTML td {
+  border: 1px solid #d0d7de !important;
+  font-size: 0.85em !important;
+  padding: 5px 7px !important;
+}
+.markdown-body th,
+.jp-RenderedHTML th {
+  background-color: #f6f8fa !important;
+}
+.markdown-body td:first-child,
+.jp-RenderedHTML td:first-child {
+  font-weight: bold !important;
+  white-space: nowrap !important;
+  background-color: rgba(240, 240, 240, 0.53) !important;
+}

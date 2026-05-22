@@ -2,11 +2,17 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { promises as fs } from 'fs';
 import { jsPDF } from 'jspdf';
-import { renderNotebook } from './render';
+import { renderNotebook, renderMarkdown } from './render';
 import { Notebook } from './notebook';
 import { resolveTheme, ThemeInfo } from './themes';
 
 let outputChannel: vscode.OutputChannel;
+
+const SUPPORTED_EXTENSIONS = ['.ipynb', '.md'];
+
+function isSupported(fsPath: string): boolean {
+  return SUPPORTED_EXTENSIONS.some((ext) => fsPath.endsWith(ext));
+}
 
 export function activate(context: vscode.ExtensionContext) {
   outputChannel = vscode.window.createOutputChannel('Jupyter to PNG Converter');
@@ -14,38 +20,38 @@ export function activate(context: vscode.ExtensionContext) {
   const pngDisposable = vscode.commands.registerCommand(
     'ipynb-to-png-converter.convertToPng',
     async (fileUri?: vscode.Uri) => {
-      const target = fileUri ?? resolveActiveNotebookUri();
-      if (!target || !target.fsPath.endsWith('.ipynb')) {
-        vscode.window.showErrorMessage('Please select a .ipynb file');
+      const target = fileUri ?? resolveActiveSourceUri();
+      if (!target || !isSupported(target.fsPath)) {
+        vscode.window.showErrorMessage('Please select a .ipynb or .md file');
         return;
       }
-      await convertNotebookToImage(context, target.fsPath, 'png');
+      await convertToImage(context, target.fsPath, 'png');
     }
   );
 
   const pdfDisposable = vscode.commands.registerCommand(
     'ipynb-to-png-converter.convertToPdf',
     async (fileUri?: vscode.Uri) => {
-      const target = fileUri ?? resolveActiveNotebookUri();
-      if (!target || !target.fsPath.endsWith('.ipynb')) {
-        vscode.window.showErrorMessage('Please select a .ipynb file');
+      const target = fileUri ?? resolveActiveSourceUri();
+      if (!target || !isSupported(target.fsPath)) {
+        vscode.window.showErrorMessage('Please select a .ipynb or .md file');
         return;
       }
-      await convertNotebookToImage(context, target.fsPath, 'pdf');
+      await convertToImage(context, target.fsPath, 'pdf');
     }
   );
 
   context.subscriptions.push(pngDisposable, pdfDisposable);
 }
 
-async function convertNotebookToImage(
+async function convertToImage(
   context: vscode.ExtensionContext,
   filePath: string,
   format: 'png' | 'pdf'
 ): Promise<void> {
   const fileName = path.basename(filePath);
   const extension = format === 'png' ? '.png' : '.pdf';
-  const outputPath = filePath.replace(/\.ipynb$/, extension);
+  const outputPath = filePath.replace(/\.(ipynb|md)$/i, extension);
 
   outputChannel.clear();
   outputChannel.show(true);
@@ -53,8 +59,9 @@ async function convertNotebookToImage(
 
   try {
     const raw = await fs.readFile(filePath, 'utf-8');
-    const notebook = JSON.parse(raw) as Notebook;
-    const bodyHtml = renderNotebook(notebook);
+    const bodyHtml = filePath.toLowerCase().endsWith('.md')
+      ? renderMarkdown(raw)
+      : renderNotebook(JSON.parse(raw) as Notebook);
 
     const config = vscode.workspace.getConfiguration('ipynb-to-png-converter');
     const scale = clamp(config.get<number>('deviceScaleFactor', 3), 1, 5);
@@ -135,6 +142,13 @@ async function captureInWebview(
     fs.readFile(vscode.Uri.joinPath(mediaRoot, 'styles.css').fsPath, 'utf-8'),
   ]);
 
+  // Optional per-theme document chrome (headings, tables, output accents),
+  // appended last so it overrides the base styles. Themes without a chrome
+  // file just skip this.
+  const chromeCss = await fs
+    .readFile(vscode.Uri.joinPath(mediaRoot, 'themes', `${themeKey}.chrome.css`).fsPath, 'utf-8')
+    .catch(() => '');
+
   const themeVars = `:root {
   --capture-width: ${captureWidth}px;
   --code-bg: ${theme.background};
@@ -185,7 +199,7 @@ async function captureInWebview(
       pageHeightPx: pageHeightCss !== null ? pageHeightCss * scale : null,
       cspSource: panel.webview.cspSource,
       html2canvasUri: html2canvasUri.toString(),
-      inlineCss: `${themeVars}\n${githubMdCss}\n${hljsCss}\n${styles}`,
+      inlineCss: `${themeVars}\n${githubMdCss}\n${hljsCss}\n${styles}\n${chromeCss}`,
     });
   });
 }
@@ -308,13 +322,13 @@ async function generatePdfFromPages(
   return Buffer.from(pdf.output('arraybuffer'));
 }
 
-function resolveActiveNotebookUri(): vscode.Uri | undefined {
+function resolveActiveSourceUri(): vscode.Uri | undefined {
   const notebook = vscode.window.activeNotebookEditor?.notebook.uri;
-  if (notebook?.fsPath.endsWith('.ipynb')) {
+  if (notebook && isSupported(notebook.fsPath)) {
     return notebook;
   }
   const editor = vscode.window.activeTextEditor?.document.uri;
-  if (editor?.fsPath.endsWith('.ipynb')) {
+  if (editor && isSupported(editor.fsPath)) {
     return editor;
   }
   return undefined;

@@ -2,7 +2,7 @@
   "name": "notebook-to-png-converter",
   "displayName": "Jupyter Notebook to PNG Exporter",
   "description": "Convert Jupyter Notebook (.ipynb) files to PNG images or PDF documents, optimized for smartphone viewing.",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "publisher": "leekh",
   "repository": {
     "type": "git",
@@ -24,12 +24,12 @@
     "commands": [
       {
         "command": "ipynb-to-png-converter.convertToPng",
-        "title": "Convert Jupyter Notebook to PNG",
+        "title": "Convert Notebook/Markdown to PNG",
         "category": "Jupyter"
       },
       {
         "command": "ipynb-to-png-converter.convertToPdf",
-        "title": "Convert Jupyter Notebook to PDF",
+        "title": "Convert Notebook/Markdown to PDF",
         "category": "Jupyter"
       }
     ],
@@ -37,35 +37,35 @@
       "explorer/context": [
         {
           "command": "ipynb-to-png-converter.convertToPng",
-          "when": "resourceExtname == .ipynb",
+          "when": "resourceExtname == .ipynb || resourceExtname == .md",
           "group": "navigation@99"
         },
         {
           "command": "ipynb-to-png-converter.convertToPdf",
-          "when": "resourceExtname == .ipynb",
+          "when": "resourceExtname == .ipynb || resourceExtname == .md",
           "group": "navigation@98"
         }
       ],
       "editor/title/context": [
         {
           "command": "ipynb-to-png-converter.convertToPng",
-          "when": "resourceExtname == .ipynb",
+          "when": "resourceExtname == .ipynb || resourceExtname == .md",
           "group": "navigation@99"
         },
         {
           "command": "ipynb-to-png-converter.convertToPdf",
-          "when": "resourceExtname == .ipynb",
+          "when": "resourceExtname == .ipynb || resourceExtname == .md",
           "group": "navigation@98"
         }
       ],
       "commandPalette": [
         {
           "command": "ipynb-to-png-converter.convertToPng",
-          "when": "resourceExtname == .ipynb || activeEditor == 'workbench.editor.notebook'"
+          "when": "resourceExtname == .ipynb || resourceExtname == .md || activeEditor == 'workbench.editor.notebook'"
         },
         {
           "command": "ipynb-to-png-converter.convertToPdf",
-          "when": "resourceExtname == .ipynb || activeEditor == 'workbench.editor.notebook'"
+          "when": "resourceExtname == .ipynb || resourceExtname == .md || activeEditor == 'workbench.editor.notebook'"
         }
       ]
     },
@@ -118,7 +118,8 @@
             "atom-one-dark",
             "monokai",
             "nord",
-            "vs2015"
+            "vs2015",
+            "leekh"
           ],
           "enumDescriptions": [
             "Dracula",
@@ -128,9 +129,10 @@
             "Atom One Dark",
             "Monokai",
             "Nord",
-            "Visual Studio Dark"
+            "Visual Studio Dark",
+            "Leekh (vertical/A4 print style: emoji headings, colored sections, accented outputs)"
           ],
-          "description": "Syntax highlighting theme for source code cells."
+          "description": "Syntax highlighting theme for source code cells. 'leekh' also restyles headings, tables, and outputs to match the A4 print layout."
         }
       }
     }
