@@ -1,7 +1,7 @@
 {
-  "name": "notebook-to-png-converter",
-  "displayName": "Jupyter Notebook to PNG Exporter",
-  "description": "Convert Jupyter Notebook (.ipynb) files to PNG images or PDF documents, optimized for smartphone viewing.",
+  "name": "ipynb-pdf-converter",
+  "displayName": "Ipynb PDF Converter",
+  "description": "Convert Jupyter Notebook (.ipynb) and Markdown (.md) files to PDF documents, optimized for smartphone/tablet viewing.",
   "version": "0.5.0",
   "publisher": "leekh",
   "repository": {
@@ -23,12 +23,7 @@
   "contributes": {
     "commands": [
       {
-        "command": "ipynb-to-png-converter.convertToPng",
-        "title": "Convert Notebook/Markdown to PNG",
-        "category": "Jupyter"
-      },
-      {
-        "command": "ipynb-to-png-converter.convertToPdf",
+        "command": "ipynb-pdf-converter.convertToPdf",
         "title": "Convert Notebook/Markdown to PDF",
         "category": "Jupyter"
       }
@@ -36,78 +31,57 @@
     "menus": {
       "explorer/context": [
         {
-          "command": "ipynb-to-png-converter.convertToPng",
-          "when": "resourceExtname == .ipynb || resourceExtname == .md",
-          "group": "navigation@99"
-        },
-        {
-          "command": "ipynb-to-png-converter.convertToPdf",
+          "command": "ipynb-pdf-converter.convertToPdf",
           "when": "resourceExtname == .ipynb || resourceExtname == .md",
           "group": "navigation@98"
         }
       ],
       "editor/title/context": [
         {
-          "command": "ipynb-to-png-converter.convertToPng",
-          "when": "resourceExtname == .ipynb || resourceExtname == .md",
-          "group": "navigation@99"
-        },
-        {
-          "command": "ipynb-to-png-converter.convertToPdf",
+          "command": "ipynb-pdf-converter.convertToPdf",
           "when": "resourceExtname == .ipynb || resourceExtname == .md",
           "group": "navigation@98"
         }
       ],
       "commandPalette": [
         {
-          "command": "ipynb-to-png-converter.convertToPng",
-          "when": "resourceExtname == .ipynb || resourceExtname == .md || activeEditor == 'workbench.editor.notebook'"
-        },
-        {
-          "command": "ipynb-to-png-converter.convertToPdf",
+          "command": "ipynb-pdf-converter.convertToPdf",
           "when": "resourceExtname == .ipynb || resourceExtname == .md || activeEditor == 'workbench.editor.notebook'"
         }
       ]
     },
     "configuration": {
-      "title": "Jupyter to PNG Converter",
+      "title": "Ipynb PDF Converter",
       "properties": {
-        "ipynb-to-png-converter.deviceScaleFactor": {
+        "ipynb-pdf-converter.deviceScaleFactor": {
           "type": "number",
           "default": 3,
           "minimum": 1,
           "maximum": 5,
-          "description": "Device scale factor for PNG image resolution (1-5). Higher values produce higher resolution images."
+          "description": "Rendering scale factor for PDF resolution (1-5). Higher values produce sharper pages."
         },
-        "ipynb-to-png-converter.imageWidth": {
+        "ipynb-pdf-converter.pdfPageWidth": {
           "type": "number",
-          "default": 800,
-          "minimum": 360,
-          "maximum": 2400,
-          "description": "Width of the generated PNG image in CSS pixels (final PNG width = imageWidth × deviceScaleFactor). Default matches pdfPageWidth so PNG and PDF share the same rendering width."
-        },
-        "ipynb-to-png-converter.pdfPageWidth": {
-          "type": "number",
-          "default": 800,
+          "default": 640,
           "minimum": 360,
           "maximum": 2400,
           "description": "Width of each PDF page in CSS pixels. Default optimized for Galaxy Tab S9 portrait (800 × 1280 CSS px)."
         },
-        "ipynb-to-png-converter.pdfPageHeight": {
+        "ipynb-pdf-converter.pdfPageHeight": {
           "type": "number",
           "default": 1280,
           "minimum": 480,
           "maximum": 4000,
           "description": "Height of each PDF page in CSS pixels. Content longer than this is split across multiple pages. Default optimized for Galaxy Tab S9 portrait."
         },
-        "ipynb-to-png-converter.pdfPageMargin": {
+        "ipynb-pdf-converter.pdfPageMargin": {
           "type": "number",
           "default": 32,
           "minimum": 0,
           "maximum": 200,
           "description": "Inner margin around content on every PDF page, in CSS pixels. Applied on all four sides of every page."
         },
-        "ipynb-to-png-converter.codeTheme": {
+        "ipynb-pdf-converter.codeTheme": {
           "type": "string",
           "default": "dracula",
           "enum": [

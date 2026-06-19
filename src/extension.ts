@@ -15,47 +15,33 @@ function isSupported(fsPath: string): boolean {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  outputChannel = vscode.window.createOutputChannel('Jupyter to PNG Converter');
-
-  const pngDisposable = vscode.commands.registerCommand(
-    'ipynb-to-png-converter.convertToPng',
-    async (fileUri?: vscode.Uri) => {
-      const target = fileUri ?? resolveActiveSourceUri();
-      if (!target || !isSupported(target.fsPath)) {
-        vscode.window.showErrorMessage('Please select a .ipynb or .md file');
-        return;
-      }
-      await convertToImage(context, target.fsPath, 'png');
-    }
-  );
+  outputChannel = vscode.window.createOutputChannel('Ipynb PDF Converter');
 
   const pdfDisposable = vscode.commands.registerCommand(
-    'ipynb-to-png-converter.convertToPdf',
+    'ipynb-pdf-converter.convertToPdf',
     async (fileUri?: vscode.Uri) => {
       const target = fileUri ?? resolveActiveSourceUri();
       if (!target || !isSupported(target.fsPath)) {
         vscode.window.showErrorMessage('Please select a .ipynb or .md file');
         return;
       }
-      await convertToImage(context, target.fsPath, 'pdf');
+      await convertToPdf(context, target.fsPath);
     }
   );
 
-  context.subscriptions.push(pngDisposable, pdfDisposable);
+  context.subscriptions.push(pdfDisposable);
 }
 
-async function convertToImage(
+async function convertToPdf(
   context: vscode.ExtensionContext,
-  filePath: string,
-  format: 'png' | 'pdf'
+  filePath: string
 ): Promise<void> {
   const fileName = path.basename(filePath);
-  const extension = format === 'png' ? '.png' : '.pdf';
-  const outputPath = filePath.replace(/\.(ipynb|md)$/i, extension);
+  const outputPath = filePath.replace(/\.(ipynb|md)$/i, '.pdf');
 
   outputChannel.clear();
   outputChannel.show(true);
-  outputChannel.appendLine(`📝 Converting: ${fileName} → ${format.toUpperCase()}`);
+  outputChannel.appendLine(`📝 Converting: ${fileName} → PDF`);
 
   try {
     const raw = await fs.readFile(filePath, 'utf-8');
@@ -63,9 +49,8 @@ async function convertToImage(
       ? renderMarkdown(raw)
       : renderNotebook(JSON.parse(raw) as Notebook);
 
-    const config = vscode.workspace.getConfiguration('ipynb-to-png-converter');
+    const config = vscode.workspace.getConfiguration('ipynb-pdf-converter');
     const scale = clamp(config.get<number>('deviceScaleFactor', 3), 1, 5);
-    const imageWidth = clamp(config.get<number>('imageWidth', 800), 360, 2400);
     const pdfPageWidth = clamp(config.get<number>('pdfPageWidth', 800), 360, 2400);
     const pdfPageHeight = clamp(config.get<number>('pdfPageHeight', 1280), 480, 4000);
     const pdfPageMargin = clamp(
@@ -77,36 +62,26 @@ async function convertToImage(
 
     const pdfContentWidth = pdfPageWidth - 2 * pdfPageMargin;
     const pdfContentHeight = pdfPageHeight - 2 * pdfPageMargin;
-    const captureWidth = format === 'pdf' ? pdfContentWidth : imageWidth;
-    const pageHeightCss = format === 'pdf' ? pdfContentHeight : null;
 
     outputChannel.appendLine(
-      format === 'pdf'
-        ? `Rendering in webview (theme: ${theme.info.label}, page: ${pdfPageWidth}×${pdfPageHeight}px CSS, margin: ${pdfPageMargin}px, scale: ${scale}x)…`
-        : `Rendering in webview (theme: ${theme.info.label}, width: ${imageWidth}px, scale: ${scale}x)…`
+      `Rendering in webview (theme: ${theme.info.label}, page: ${pdfPageWidth}×${pdfPageHeight}px CSS, margin: ${pdfPageMargin}px, scale: ${scale}x)…`
     );
     const pages = await captureInWebview(context, {
       bodyHtml,
       scale,
-      captureWidth,
-      pageHeightCss,
+      captureWidth: pdfContentWidth,
+      pageHeightCss: pdfContentHeight,
       theme: theme.info,
       themeKey: theme.key,
-      format,
     });
 
-    if (format === 'pdf') {
-      outputChannel.appendLine(`Assembling PDF (${pages.length} page${pages.length === 1 ? '' : 's'})…`);
-      const buffer = await generatePdfFromPages(pages, pdfPageWidth, pdfPageHeight, pdfPageMargin);
-      await fs.writeFile(outputPath, buffer);
-    } else {
-      const buffer = Buffer.from(pages[0].split(',')[1], 'base64');
-      await fs.writeFile(outputPath, buffer);
-    }
+    outputChannel.appendLine(`Assembling PDF (${pages.length} page${pages.length === 1 ? '' : 's'})…`);
+    const buffer = await generatePdfFromPages(pages, pdfPageWidth, pdfPageHeight, pdfPageMargin);
+    await fs.writeFile(outputPath, buffer);
 
     outputChannel.appendLine(`✅ Saved: ${outputPath}`);
     vscode.window.showInformationMessage(
-      `✅ Converted to ${format.toUpperCase()}: ${path.basename(outputPath)}`
+      `✅ Converted to PDF: ${path.basename(outputPath)}`
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -119,17 +94,16 @@ interface CaptureParams {
   bodyHtml: string;
   scale: number;
   captureWidth: number;
-  pageHeightCss: number | null;
+  pageHeightCss: number;
   theme: ThemeInfo;
   themeKey: string;
-  format: 'png' | 'pdf';
 }
 
 async function captureInWebview(
   context: vscode.ExtensionContext,
   params: CaptureParams
 ): Promise<string[]> {
-  const { bodyHtml, scale, captureWidth, pageHeightCss, theme, themeKey, format } = params;
+  const { bodyHtml, scale, captureWidth, pageHeightCss, theme, themeKey } = params;
   const mediaRoot = vscode.Uri.joinPath(context.extensionUri, 'media');
 
   // Inline CSS into a <style> tag. html2canvas clones the DOM into an iframe
@@ -159,7 +133,7 @@ async function captureInWebview(
 
   return new Promise((resolve, reject) => {
     const panel = vscode.window.createWebviewPanel(
-      'ipynbToPngRenderer',
+      'ipynbPdfRenderer',
       'Converting notebook…',
       { viewColumn: vscode.ViewColumn.Active, preserveFocus: true },
       {
@@ -195,8 +169,7 @@ async function captureInWebview(
     panel.webview.html = buildWebviewHtml({
       bodyHtml,
       scale,
-      format,
-      pageHeightPx: pageHeightCss !== null ? pageHeightCss * scale : null,
+      pageHeightPx: pageHeightCss * scale,
       cspSource: panel.webview.cspSource,
       html2canvasUri: html2canvasUri.toString(),
       inlineCss: `${themeVars}\n${githubMdCss}\n${hljsCss}\n${styles}\n${chromeCss}`,
@@ -207,13 +180,12 @@ async function captureInWebview(
 function buildWebviewHtml(params: {
   bodyHtml: string;
   scale: number;
-  format: 'png' | 'pdf';
-  pageHeightPx: number | null;
+  pageHeightPx: number;
   cspSource: string;
   html2canvasUri: string;
   inlineCss: string;
 }): string {
-  const { bodyHtml, scale, format, pageHeightPx, cspSource, html2canvasUri, inlineCss } = params;
+  const { bodyHtml, scale, pageHeightPx, cspSource, html2canvasUri, inlineCss } = params;
   const csp = [
     `default-src 'none'`,
     `img-src ${cspSource} data: blob:`,
@@ -235,8 +207,7 @@ function buildWebviewHtml(params: {
 <script>
 (function () {
   const vscode = acquireVsCodeApi();
-  const format = ${JSON.stringify(format)};
-  const pageHeightPx = ${pageHeightPx === null ? 'null' : pageHeightPx};
+  const pageHeightPx = ${pageHeightPx};
 
   function sliceIntoPages(srcCanvas, pageHeight) {
     const w = srcCanvas.width;
@@ -267,11 +238,7 @@ function buildWebviewHtml(params: {
       windowHeight: target.scrollHeight,
     })
       .then((canvas) => {
-        if (format === 'pdf' && pageHeightPx) {
-          vscode.postMessage({ type: 'result', pages: sliceIntoPages(canvas, pageHeightPx) });
-        } else {
-          vscode.postMessage({ type: 'result', pages: [canvas.toDataURL('image/png')] });
-        }
+        vscode.postMessage({ type: 'result', pages: sliceIntoPages(canvas, pageHeightPx) });
       })
       .catch((err) => {
         vscode.postMessage({ type: 'error', message: String(err && err.message || err) });

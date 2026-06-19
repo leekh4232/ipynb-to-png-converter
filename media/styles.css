@@ -13,7 +13,7 @@ html, body {
 
 #capture-root {
   background: #ffffff;
-  padding: 32px 40px;
+  padding: 0;
   width: var(--capture-width, 1024px);
   box-sizing: border-box;
 }
