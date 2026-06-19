@@ -14,6 +14,28 @@ function isSupported(fsPath: string): boolean {
   return SUPPORTED_EXTENSIONS.some((ext) => fsPath.endsWith(ext));
 }
 
+// Vendored CSS assets never change during a session, so cache reads by path.
+// A `null` entry records an absent optional file (e.g. a theme without chrome).
+const cssCache = new Map<string, string | null>();
+
+async function readAssetCached(filePath: string, optional = false): Promise<string> {
+  const cached = cssCache.get(filePath);
+  if (cached !== undefined) {
+    return cached ?? '';
+  }
+  try {
+    const content = await fs.readFile(filePath, 'utf-8');
+    cssCache.set(filePath, content);
+    return content;
+  } catch (error) {
+    if (optional) {
+      cssCache.set(filePath, null);
+      return '';
+    }
+    throw error;
+  }
+}
+
 export function activate(context: vscode.ExtensionContext) {
   outputChannel = vscode.window.createOutputChannel('Ipynb PDF Converter');
 
@@ -109,19 +131,15 @@ async function captureInWebview(
   // Inline CSS into a <style> tag. html2canvas clones the DOM into an iframe
   // and cannot fetch external stylesheets across webview origins, so <link>
   // tags would produce an unstyled capture even though the live webview looks
-  // correct.
-  const [githubMdCss, hljsCss, styles] = await Promise.all([
-    fs.readFile(vscode.Uri.joinPath(mediaRoot, 'github-markdown.css').fsPath, 'utf-8'),
-    fs.readFile(vscode.Uri.joinPath(mediaRoot, 'themes', `${themeKey}.css`).fsPath, 'utf-8'),
-    fs.readFile(vscode.Uri.joinPath(mediaRoot, 'styles.css').fsPath, 'utf-8'),
+  // correct. The optional per-theme chrome (headings, tables, output accents)
+  // is appended last so it overrides the base styles; themes without one skip it.
+  const themesDir = vscode.Uri.joinPath(mediaRoot, 'themes');
+  const [githubMdCss, hljsCss, styles, chromeCss] = await Promise.all([
+    readAssetCached(vscode.Uri.joinPath(mediaRoot, 'github-markdown.css').fsPath),
+    readAssetCached(vscode.Uri.joinPath(themesDir, `${themeKey}.css`).fsPath),
+    readAssetCached(vscode.Uri.joinPath(mediaRoot, 'styles.css').fsPath),
+    readAssetCached(vscode.Uri.joinPath(themesDir, `${themeKey}.chrome.css`).fsPath, true),
   ]);
-
-  // Optional per-theme document chrome (headings, tables, output accents),
-  // appended last so it overrides the base styles. Themes without a chrome
-  // file just skip this.
-  const chromeCss = await fs
-    .readFile(vscode.Uri.joinPath(mediaRoot, 'themes', `${themeKey}.chrome.css`).fsPath, 'utf-8')
-    .catch(() => '');
 
   const themeVars = `:root {
   --capture-width: ${captureWidth}px;

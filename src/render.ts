@@ -33,8 +33,12 @@ export function renderNotebook(nb: Notebook): string {
 // Renders a standalone Markdown document, reusing the same notebook chrome so it
 // flows through the identical capture/theme pipeline as a .ipynb file.
 export function renderMarkdown(source: string): string {
-  const html = marked.parse(source) as string;
-  return `<div class="jp-Notebook">\n<div class="jp-Cell jp-MarkdownCell"><div class="jp-Cell-inputWrapper"><div class="markdown-body">${html}</div></div></div>\n</div>`;
+  const cell = markdownCellHtml(marked.parse(source) as string);
+  return `<div class="jp-Notebook">\n${cell}\n</div>`;
+}
+
+function markdownCellHtml(html: string): string {
+  return `<div class="jp-Cell jp-MarkdownCell"><div class="jp-Cell-inputWrapper"><div class="markdown-body">${html}</div></div></div>`;
 }
 
 function renderCell(cell: Cell, language: string): string {
@@ -51,8 +55,7 @@ function renderCell(cell: Cell, language: string): string {
 }
 
 function renderMarkdownCell(cell: MarkdownCell): string {
-  const html = marked.parse(joinSource(cell.source)) as string;
-  return `<div class="jp-Cell jp-MarkdownCell"><div class="jp-Cell-inputWrapper"><div class="markdown-body">${html}</div></div></div>`;
+  return markdownCellHtml(marked.parse(joinSource(cell.source)) as string);
 }
 
 function renderRawCell(cell: RawCell): string {
