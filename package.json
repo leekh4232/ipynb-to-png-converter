@@ -2,7 +2,7 @@
   "name": "ipynb-pdf-converter",
   "displayName": "Ipynb PDF Converter",
   "description": "Convert Jupyter Notebook (.ipynb) and Markdown (.md) files to PDF documents, optimized for smartphone/tablet viewing.",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "publisher": "leekh",
   "repository": {
     "type": "git",
